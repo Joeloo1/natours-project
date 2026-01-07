@@ -3,3 +3,9 @@ config.env
 .prettierrc
 .eslintrc.json 
 node_modules
+.cache
+
+
+# Ignore JS build files and source maps
+public/js/bundle.js
+public/js/bundle.js.map
