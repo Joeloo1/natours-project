@@ -13,6 +13,8 @@ dotenv.config({ path: './config.env' });
 
 const app = require('./app');
 
+mongoose.set('strictQuery', false);
+
 // Replace password placeholder in connection string
 const DB = process.env.DATABASE.replace(
   '<PASSWORD>',
@@ -21,11 +23,7 @@ const DB = process.env.DATABASE.replace(
 
 // Connect to MongoDB
 mongoose
-  .connect(DB, {
-    useUnifiedTopology: true,
-    useNewUrlParser: true,
-    useCreateIndex: true,
-  })
+  .connect(DB)
   .then(() => console.log('✅ DB connection successful!'))
   .catch((err) => {
     console.error('❌ DB connection error:', err);
