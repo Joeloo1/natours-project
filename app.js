@@ -44,6 +44,7 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 // Body parser, reading data from body into req.body
 app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(cookieParser());
 
 // Data sanitization against NOSQL query injection
@@ -79,6 +80,10 @@ app.use('/api/v1/reviews', reviewRouter);
 
 // HANDLING unhandled Routes
 app.all('*', (req, res, next) => {
+  // Skip error logging for common browser/extension requests
+  if (req.path.startsWith('/.well-known') || req.path.endsWith('.map')) {
+    return res.status(404).json({ message: 'Not found' });
+  }
   next(new AppError(`can't find ${req.originalUrl} on this server`, 404));
 });
 
