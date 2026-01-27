@@ -105,6 +105,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
   // Grant access to protected route
   req.user = currentUser;
+  res.locals.user = currentUser;
   next();
 });
 
@@ -113,7 +114,10 @@ exports.isLoggedIn = async (req, res, next) => {
   if (req.cookies.jwt) {
     try {
       // 1) verify the token
-      const decoded = await promisify(JWT.verify)(req.cookies.jwt, process.env.JWT_SECRET);
+      const decoded = await promisify(JWT.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET,
+      );
 
       // 2) Check if the user still exists
       const currentUser = await User.findById(decoded.id);

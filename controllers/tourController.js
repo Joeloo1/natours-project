@@ -1,30 +1,28 @@
-const multer = require('multer')
-const sharp = require('sharp')
+const multer = require('multer');
+const sharp = require('sharp');
 const AppError = require('../utils/appError');
 const Tour = require('./../models/tourModel');
 const catchAsync = require('./../utils/catchAsync');
-const factory = require('./handlerFactory')
+const factory = require('./handlerFactory');
 
-const multerStorage = multer.memoryStorage()
+const multerStorage = multer.memoryStorage();
 
 const multerFilter = (req, file, cd) => {
-  if (file.mimetype.startsWith('image')) { 
-    cd(null, true)
-  }else {
-    cd(new AppError('Not an image! Please upload only images',
-      404
-    ), false )
+  if (file.mimetype.startsWith('image')) {
+    cd(null, true);
+  } else {
+    cd(new AppError('Not an image! Please upload only images', 404), false);
   }
-}
+};
 
 const upload = multer({
   storage: multerStorage,
-  fileFilter: multerFilter
-}) 
+  fileFilter: multerFilter,
+});
 
 exports.uploadTourImages = upload.fields([
-  {name: 'imageCover', maxCount: 1},
-  {name: 'images',maxCount: 3}
+  { name: 'imageCover', maxCount: 1 },
+  { name: 'images', maxCount: 3 },
 ]);
 
 // RESIZE TOUR IMAGES
@@ -44,17 +42,17 @@ exports.resizeTourImages = catchAsync(async (req, res, next) => {
 
   await Promise.all(
     req.files.images.map(async (file, i) => {
-    const filename = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
+      const filename = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
 
-    await sharp(file.buffer)
-      .resize(2000, 1333)
-      .toFormat('jpeg')
-      .jpeg({ quality: 90 })
-      .toFile(`public/img/tours/${filename}`);
-      req.body.images.push(filename)
-  })
-);
-  next()
+      await sharp(file.buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${filename}`);
+      req.body.images.push(filename);
+    }),
+  );
+  next();
 });
 
 exports.aliasTopTours = (req, res, next) => {
@@ -64,12 +62,11 @@ exports.aliasTopTours = (req, res, next) => {
   next();
 };
 
-exports.getAllTours = factory.getAll(Tour)
-exports.getTour = factory.getOne(Tour, { path: 'reviews'})
-exports.createTour = factory.createOne(Tour)
-exports.updateTour = factory.updateOne(Tour)
-exports.deleteTour = factory.deleteOne(Tour)
-
+exports.getAllTours = factory.getAll(Tour);
+exports.getTour = factory.getOne(Tour, { path: 'reviews' });
+exports.createTour = factory.createOne(Tour);
+exports.updateTour = factory.updateOne(Tour);
+exports.deleteTour = factory.deleteOne(Tour);
 
 // Getting tour statistics using mongoDB aggregation pipeline
 exports.getTourStats = catchAsync(async (req, res, next) => {
@@ -138,70 +135,70 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
 
 // geosphatial query to get tours within a certain distance
 exports.getToursWithin = catchAsync(async (req, res, next) => {
-  const { distance, latlng, unit } = req.params
-  const [ lat, lng ] = latlng.split(',')
+  const { distance, latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
 
   if (!lat || !lng) {
-    return next(new
-      AppError(
+    return next(
+      new AppError(
         'Please provide latitude and longitude in the format lat, lng',
-        404
-      )
-    )
+        404,
+      ),
+    );
   }
-  const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1
+  const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1;
 
   const tours = await Tour.find({
-    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius]}}
-  })
+    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
+  });
 
   res.status(200).json({
-    stauts: 'success', 
+    stauts: 'success',
     result: tours.length,
     data: {
-      data: tours
-    }
-  })
-})
+      data: tours,
+    },
+  });
+});
 
-// geospatial aggregation to get distances to all tours from a certain point 
+// geospatial aggregation to get distances to all tours from a certain point
 exports.getDistances = catchAsync(async (req, res, next) => {
-  const {  latlng, unit } = req.params
-  const [ lat, lng ] = latlng.split(',')
-  
-   const multiplier = unit === 'mi' ?  0.000621371 : 0.001
+  const { latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+
+  const multiplier = unit === 'mi' ? 0.000621371 : 0.001;
 
   if (!lat || !lng) {
-    return next(new
-      AppError(
+    return next(
+      new AppError(
         'Please provide latitude and longitude in the format lat, lng',
-        404
-      )
-    )
+        404,
+      ),
+    );
   }
   const distances = await Tour.aggregate([
     {
       $geoNear: {
-        near : {
+        near: {
           type: 'Point',
-          coordinates: [lng * 1,  lat * 1]
-        }, 
+          coordinates: [lng * 1, lat * 1],
+        },
         distanceField: 'distance',
-        distanceMultiplier: multiplier 
-      }
+        distanceMultiplier: multiplier,
+      },
     },
     {
       $project: {
         distance: 1,
-        name: 1 
-      }
-    }
-  ])
+        name: 1,
+      },
+    },
+  ]);
 
-    res.status(200).json({
-    stauts: 'success', 
+  res.status(200).json({
+    stauts: 'success',
     data: {
-      data: distances 
-    }
-  })
-})
+      data: distances,
+    },
+  });
+});
