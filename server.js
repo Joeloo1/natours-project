@@ -16,10 +16,7 @@ const app = require('./app');
 mongoose.set('strictQuery', false);
 
 // Replace password placeholder in connection string
-const DB = process.env.DATABASE.replace(
-  '<PASSWORD>',
-  process.env.DATABASE_PASSWORD,
-);
+const DB = process.env.DATABASE;
 
 // Connect to MongoDB
 mongoose

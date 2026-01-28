@@ -26,7 +26,26 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Set security HTTP Headers
-app.use(helmet());
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        'https://js.stripe.com',
+        'https://cdnjs.cloudflare.com',
+      ],
+      frameSrc: ["'self'", 'https://js.stripe.com'],
+      connectSrc: [
+        "'self'",
+        'https://api.stripe.com',
+        'ws://127.0.0.1:*', // allow Parcel dev server
+      ],
+      imgSrc: ["'self'", 'data:', 'blob:'],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+    },
+  }),
+);
 
 // Development logging
 console.log(process.env.NODE_ENV);
