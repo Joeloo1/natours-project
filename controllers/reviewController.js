@@ -1,8 +1,8 @@
-const Review = require('../models/reviewModel');
-const factory = require('./handlerFactory');
+const Review = require("../models/reviewModel");
+const factory = require("./handlerFactory");
 
 // Middleware to set tour and user IDs if they’re not provided
-exports.setTourAndUserIds = (req, res, next) => {
+exports.setTourAndUserIds = (req, _res, next) => {
   // Allow nested routes
   if (!req.body.tour) req.body.tour = req.params.tourId;
   if (!req.body.user) req.body.user = req.user.id;

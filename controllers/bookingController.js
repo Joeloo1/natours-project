@@ -1,19 +1,19 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const Tour = require('../models/tourModel');
-const Booking = require('../models/bookingModel');
-const catchAsync = require('../utils/catchAsync');
-const factory = require('./handlerFactory');
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const Tour = require("../models/tourModel");
+const Booking = require("../models/bookingModel");
+const catchAsync = require("../utils/catchAsync");
+const factory = require("./handlerFactory");
 
-exports.getCheckoutSession = catchAsync(async (req, res, next) => {
+exports.getCheckoutSession = catchAsync(async (req, res, _next) => {
   const tour = await Tour.findById(req.params.tourId);
 
   const session = await stripe.checkout.sessions.create({
-    mode: 'payment',
+    mode: "payment",
 
-    payment_method_types: ['card'],
+    payment_method_types: ["card"],
 
-    success_url: `${req.protocol}://${req.get('host')}/?tour=${req.params.tourId}&user=${req.user.id}&price=${tour.price}`,
-    cancel_url: `${req.protocol}://${req.get('host')}/tour/${tour.slug}`,
+    success_url: `${req.protocol}://${req.get("host")}/?tour=${req.params.tourId}&user=${req.user.id}&price=${tour.price}`,
+    cancel_url: `${req.protocol}://${req.get("host")}/tour/${tour.slug}`,
 
     customer_email: req.user.email,
     client_reference_id: req.params.tourId,
@@ -21,13 +21,13 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
     line_items: [
       {
         price_data: {
-          currency: 'usd',
+          currency: "usd",
           unit_amount: tour.price * 100,
           product_data: {
             name: tour.name,
             description: tour.summary,
             images: [
-              `${req.protocol}://${req.get('host')}/img/tours/${tour.imageCover}`,
+              `${req.protocol}://${req.get("host")}/img/tours/${tour.imageCover}`,
             ],
           },
         },
@@ -37,7 +37,7 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   });
 
   res.status(200).json({
-    status: 'success',
+    status: "success",
     session,
   });
 });
@@ -48,7 +48,7 @@ exports.createBookingCheckout = catchAsync(async (req, res, next) => {
   if (!tour && !user && !price) return next();
   await Booking.create({ tour, user, price });
 
-  res.redirect(req.originalUrl.split('?')[0]);
+  res.redirect(req.originalUrl.split("?")[0]);
 });
 
 exports.createBooking = factory.createOne(Booking);
