@@ -1,5 +1,5 @@
-node_moduels
-config.env
+node_modules
+.env
 .prettierrc
 .eslintrc.json 
 node_modules
